@@ -39,6 +39,7 @@ jobs:
           DEBUG_event__pull_request__author_association: '${{ github.event.pull_request.author_association }}'
           DEBUG_event__review__author_association: '${{ github.event.review.author_association }}'
           DEBUG_event: '${{ toJSON(github.event) }}'
+          GEMINI_TRUST_WORKSPACE: 'true'
         run: |-
           env | grep '^DEBUG_'
 
