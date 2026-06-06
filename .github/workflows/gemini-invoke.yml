@@ -73,6 +73,7 @@ jobs:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
           GEMINI_TRUST_WORKSPACE: 'true'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
