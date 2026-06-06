@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient());
 
         // YOUR LAN DEVICE
-        webView.loadUrl("http://192.168.1.100");
+        webView.loadUrl("https://www.soundcraft.com/ui24-software-demo/mixer.html");
     }
 
     @Override
