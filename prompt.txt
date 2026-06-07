@@ -1,0 +1,13 @@
+Repository: Android WebView application.
+
+Task:
+Change the default URL to https://www.wikipedia.org
+
+Target file:
+app/src/main/java/com/app/MainActivity.java
+
+IMPORTANT:
+- Return ONLY Java source code.
+- No markdown fences.
+- No explanations.
+- Output the complete file.

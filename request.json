@@ -1,0 +1,11 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Repository: Android WebView application.\n\nTask:\nChange the default URL to https://www.wikipedia.org\n\nTarget file:\napp/src/main/java/com/app/MainActivity.java\n\nIMPORTANT:\n- Return ONLY Java source code.\n- No markdown fences.\n- No explanations.\n- Output the complete file.\n"
+        }
+      ]
+    }
+  ]
+}
