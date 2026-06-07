@@ -82,8 +82,8 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
-        s.setAppCacheEnabled(true);
-        s.setAppCachePath(getCacheDir().getAbsolutePath());
+        //s.setAppCacheEnabled(true);
+        //s.setAppCachePath(getCacheDir().getAbsolutePath());
         s.setAllowContentAccess(true);
         s.setAllowFileAccess(true);
         s.setBlockNetworkImage(false);
