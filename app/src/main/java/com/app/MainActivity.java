@@ -12,6 +12,10 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
@@ -205,11 +209,7 @@ public class MainActivity extends Activity {
         if (url.isEmpty()) {
             return;
         }
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            url = "http://" + url;
-        }
-        webView.loadUrl(url);
-        saveUrlToHistory(url);
+        openUrl(url);
 
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -218,11 +218,42 @@ public class MainActivity extends Activity {
         urlInput.clearFocus();
     }
 
+    private void openUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return;
+        }
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
+        saveUrlToHistory(url);
+
+        launchCustomTab(url);
+    }
+
+    private boolean launchCustomTab(String url) {
+        try {
+            androidx.browser.customtabs.CustomTabsIntent customTabsIntent = new androidx.browser.customtabs.CustomTabsIntent.Builder()
+                    .setShowTitle(false)
+                    .enableUrlBarHiding()
+                    .setToolbarColor(Color.BLACK)
+                    .build();
+            customTabsIntent.intent.setPackage("com.android.chrome");
+            customTabsIntent.launchUrl(this, Uri.parse(url));
+            return true;
+        } catch (ActivityNotFoundException e) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            try {
+                startActivity(intent);
+                return true;
+            } catch (ActivityNotFoundException ex) {
+                return false;
+            }
+        }
+    }
+
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        }
+        super.onBackPressed();
     }
 
     private void showUrlDialog(final String lastUrl) {
@@ -253,9 +284,6 @@ public class MainActivity extends Activity {
         builder.setNegativeButton("Cancel", new android.content.DialogInterface.OnClickListener() {
             @Override
             public void onClick(android.content.DialogInterface dialog, int which) {
-                if (lastUrl != null && !lastUrl.trim().isEmpty()) {
-                    webView.loadUrl(lastUrl);
-                }
                 dialog.dismiss();
             }
         });
