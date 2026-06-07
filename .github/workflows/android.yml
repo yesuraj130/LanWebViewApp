@@ -18,6 +18,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          target: default
+          ndk: false
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
       - name: Build Debug APK
         run: |
           chmod +x gradlew || true
