@@ -64,40 +64,6 @@ public class MainActivity extends Activity {
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        LinearLayout addressBar = new LinearLayout(this);
-        addressBar.setOrientation(LinearLayout.HORIZONTAL);
-        addressBar.setPadding(10, 10, 10, 10);
-        addressBar.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-
-        urlInput = new AutoCompleteTextView(this);
-        urlInput.setHint("Enter URL");
-        urlInput.setSingleLine(true);
-        urlInput.setImeOptions(EditorInfo.IME_ACTION_GO);
-        urlInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
-        LinearLayout.LayoutParams urlParams = new LinearLayout.LayoutParams(
-            0,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            1.0f
-        );
-        urlInput.setLayoutParams(urlParams);
-        urlInput.setThreshold(1);
-
-        Button goButton = new Button(this);
-        goButton.setText("Go");
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        goButton.setLayoutParams(buttonParams);
-
-        addressBar.addView(urlInput);
-        addressBar.addView(goButton);
-
-        mainLayout.addView(addressBar);
-
         webView = new WebView(this);
         LinearLayout.LayoutParams webViewParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -148,58 +114,21 @@ public class MainActivity extends Activity {
 
         historyList = loadHistory();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, historyList);
+
+        // Prepare an input field (not added to the main layout). We'll show it inside a startup dialog.
+        urlInput = new AutoCompleteTextView(this);
+        urlInput.setHint("Enter URL");
+        urlInput.setSingleLine(true);
+        urlInput.setImeOptions(EditorInfo.IME_ACTION_GO);
+        urlInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        urlInput.setThreshold(1);
         urlInput.setAdapter(adapter);
 
         // Load last URL or default
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String lastUrl = prefs.getString(KEY_LAST_URL, "https://www.soundcraft.com/ui24-software-demo/mixer.html");
-        urlInput.setText(lastUrl, false);
-        if (lastUrl != null) {
-            urlInput.setSelection(lastUrl.length());
-        }
-        webView.loadUrl(lastUrl);
 
-        goButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadAndSaveUrl();
-            }
-        });
-
-        urlInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_GO ||
-                    (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                    loadAndSaveUrl();
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        urlInput.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                loadAndSaveUrl();
-            }
-        });
-
-        urlInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    urlInput.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!isFinishing() && urlInput.hasFocus()) {
-                                urlInput.showDropDown();
-                            }
-                        }
-                    });
-                }
-            }
-        });
+        showUrlDialog(lastUrl);
     }
 
     private List<String> loadHistory() {
@@ -278,6 +207,89 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (webView.canGoBack()) {
             webView.goBack();
+        }
+    }
+
+    private void showUrlDialog(final String lastUrl) {
+        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Open URL");
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, padding, padding, padding);
+
+        container.addView(urlInput, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        if (lastUrl != null) {
+            urlInput.setText(lastUrl, false);
+            urlInput.setSelection(lastUrl.length());
+        }
+
+        builder.setView(container);
+        builder.setPositiveButton("OK", new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                loadAndSaveUrl();
+            }
+        });
+        builder.setNegativeButton("Cancel", new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                if (lastUrl != null && !lastUrl.trim().isEmpty()) {
+                    webView.loadUrl(lastUrl);
+                }
+                dialog.dismiss();
+            }
+        });
+
+        final android.app.AlertDialog dialog = builder.create();
+
+        urlInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    loadAndSaveUrl();
+                    dialog.dismiss();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        urlInput.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                loadAndSaveUrl();
+                dialog.dismiss();
+            }
+        });
+
+        urlInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    urlInput.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isFinishing() && urlInput.hasFocus()) {
+                                urlInput.showDropDown();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+
+        urlInput.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(urlInput, InputMethodManager.SHOW_IMPLICIT);
         }
     }
 }
