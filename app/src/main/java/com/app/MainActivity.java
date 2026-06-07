@@ -82,12 +82,18 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
+        s.setAppCacheEnabled(true);
+        s.setAppCachePath(getCacheDir().getAbsolutePath());
         s.setAllowContentAccess(true);
         s.setAllowFileAccess(true);
         s.setBlockNetworkImage(false);
         s.setLoadsImagesAutomatically(true);
         s.setMediaPlaybackRequiresUserGesture(false);
+        s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        s.setSupportZoom(false);
+        s.setBuiltInZoomControls(false);
+        s.setDisplayZoomControls(false);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             s.setOffscreenPreRaster(true);
         }
@@ -95,7 +101,9 @@ public class MainActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         webView.setWebChromeClient(new WebChromeClient());
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setFitsSystemWindows(false);
         webView.setPadding(0,0,0,0);
         
