@@ -1,0 +1,15 @@
+Repository: Android WebView application.
+
+Task:
+Add SharedPreferences URL history dropdown. Use AutoCompleteTextView. Remember last URL.
+
+Target file:
+app/src/main/java/com/app/MainActivity.java
+
+IMPORTANT:
+- Return ONLY valid Java source code.
+- Do NOT use markdown code fences.
+- Do NOT include explanations.
+- Preserve package declaration.
+- Preserve imports.
+- Output the complete file.
