@@ -1,4 +1,4 @@
-I will run `./gradlew assembleDebug` to verify that the project builds successfully before we make our changes.
+//I will run `./gradlew assembleDebug` to verify that the project builds successfully before we make our changes.
 package com.app;
 
 import android.app.Activity;
