@@ -10,25 +10,22 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import org.mozilla.geckoview.GeckoRuntime;
+import org.mozilla.geckoview.GeckoSession;
+import org.mozilla.geckoview.GeckoView;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends Activity {
 
-    WebView webView;
+    private GeckoView geckoView;
+    private GeckoSession geckoSession;
+    private GeckoRuntime geckoRuntime;
     private AutoCompleteTextView urlInput;
     private ArrayAdapter<String> adapter;
     private List<String> historyList;
@@ -62,14 +59,14 @@ public class MainActivity extends Activity {
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        webView = new WebView(this);
-        LinearLayout.LayoutParams webViewParams = new LinearLayout.LayoutParams(
+        geckoView = new GeckoView(this);
+        LinearLayout.LayoutParams geckoLayoutParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             0,
             1.0f
         );
-        webView.setLayoutParams(webViewParams);
-        mainLayout.addView(webView);
+        geckoView.setLayoutParams(geckoLayoutParams);
+        mainLayout.addView(geckoView);
 
         setContentView(mainLayout);
         enableImmersiveMode();
@@ -84,56 +81,12 @@ public class MainActivity extends Activity {
             }
         );
 
-        WebSettings s = webView.getSettings();
+        geckoRuntime = GeckoRuntime.create(this);
+        geckoSession = new GeckoSession();
+        geckoSession.open(geckoRuntime);
+        geckoView.setSession(geckoSession);
 
-        // Core performance settings
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setDatabaseEnabled(true);
-        //s.setAppCacheEnabled(true);
-        //s.setAppCachePath(getCacheDir().getAbsolutePath());
-        s.setAllowContentAccess(true);
-        s.setAllowFileAccess(true);
-        s.setBlockNetworkImage(false);
-        s.setLoadsImagesAutomatically(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setJavaScriptCanOpenWindowsAutomatically(false);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        s.setSupportZoom(false);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            s.setOffscreenPreRaster(true);
-        }
-        s.setUseWideViewPort(true);
-        s.setLoadWithOverviewMode(true);
-        s.setCacheMode(WebSettings.LOAD_DEFAULT);
-
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        webView.setWebChromeClient(new WebChromeClient());
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        webView.setFitsSystemWindows(false);
-        webView.setPadding(0,0,0,0);
-        
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                if (url != null) {
-                    urlInput.setText(url, false);
-                    urlInput.setSelection(url.length());
-                }
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                if (url != null && !url.trim().isEmpty()) {
-                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-                    prefs.edit().putString(KEY_LAST_URL, url).apply();
-                }
-            }
-        });
+        geckoView.setBackgroundColor(Color.BLACK);
 
         historyList = loadHistory();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, historyList);
@@ -230,29 +183,7 @@ public class MainActivity extends Activity {
             url = "http://" + url;
         }
         saveUrlToHistory(url);
-
-        launchCustomTab(url);
-    }
-
-    private boolean launchCustomTab(String url) {
-        try {
-            androidx.browser.customtabs.CustomTabsIntent customTabsIntent = new androidx.browser.customtabs.CustomTabsIntent.Builder()
-                    .setShowTitle(false)
-                    .enableUrlBarHiding()
-                    .setToolbarColor(Color.BLACK)
-                    .build();
-            customTabsIntent.intent.setPackage("com.android.chrome");
-            customTabsIntent.launchUrl(this, Uri.parse(url));
-            return true;
-        } catch (ActivityNotFoundException e) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            try {
-                startActivity(intent);
-                return true;
-            } catch (ActivityNotFoundException ex) {
-                return false;
-            }
-        }
+        geckoSession.loadUri(url);
     }
 
     @Override
@@ -282,7 +213,11 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if (geckoSession != null && geckoSession.canGoBack()) {
+            geckoSession.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void showUrlDialog(final String lastUrl) {

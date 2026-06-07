@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.browser:browser:1.7.0'
+    implementation 'org.mozilla.geckoview:geckoview:125.0.20240523'
 }
