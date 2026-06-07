@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -81,14 +82,20 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
-
+        s.setAllowContentAccess(true);
+        s.setAllowFileAccess(true);
+        s.setBlockNetworkImage(false);
+        s.setLoadsImagesAutomatically(true);
+        s.setMediaPlaybackRequiresUserGesture(false);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            s.setOffscreenPreRaster(true);
+        }
         s.setUseWideViewPort(true);
-        
         s.setLoadWithOverviewMode(true);
-
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.setWebChromeClient(new WebChromeClient());
         webView.setFitsSystemWindows(false);
         webView.setPadding(0,0,0,0);
         
