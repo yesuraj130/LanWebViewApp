@@ -4,6 +4,7 @@
 
     <application
         android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
         android:label="LAN WebView">
 
         <activity
